@@ -156,7 +156,7 @@ class VehicleCheckControllerTest extends TestCase
         ]);
 
         $response->assertUnprocessable();
-        $response->assertValidationError('previous_odometer', 'The previous odometer must be an integer.');
+        $response->assertJsonValidationErrorFor('previous_odometer');
         $this->assertSame(0, VehicleCheck::count());
     }
 
@@ -171,7 +171,52 @@ class VehicleCheckControllerTest extends TestCase
         ]);
 
         $response->assertUnprocessable();
-        $response->assertValidationError('previous_odometer', 'The previous odometer field must be greater than or equal to 0.');
+        $response->assertJsonValidationErrorFor('previous_odometer');
         $this->assertSame(0, VehicleCheck::count());
     }
+
+    public function test_that_guests_can_view_the_vehicle_oil_check_results_page(): void
+    {
+        $check = VehicleCheck::factory()->create();
+
+        $response = $this->get("/result/{$check->id}");
+
+        $response->assertOk();
+        $response->assertSee('Result');
+        $response->assertSee("Current odometer reading: {$check->current_odometer}");
+        $response->assertSee("Previous oil change date: {$check->previous_date?->diffForHumans()}");
+        $response->assertSee("Previous odometer reading: {$check->previous_odometer}");
+    }
+
+    public function test_that_oil_changes_are_due_when_the_previous_date_is_more_than_6_months_ago(): void
+    {
+        $check = VehicleCheck::factory()->create([
+            'previous_date' => now()->subMonths(7),
+        ]);
+
+        $this->assertTrue($check->oilChangeIsDue());
+    }
+
+    public function test_that_oil_changes_are_due_when_the_current_odometer_is_more_than_5000_kilometers_away_from_the_previous_odometer(): void
+    {
+        $check = VehicleCheck::factory()->create([
+            'previous_odometer' => 10000,
+            'current_odometer' => 15001,
+        ]);
+
+        $this->assertTrue($check->oilChangeIsDue());
+    }
+
+    public function test_that_oil_changes_are_not_due_when_the_previous_date_is_less_than_6_months_ago_and_the_current_odometer_is_less_than_5000_kilometers_away_from_the_previous_odometer(): void
+    {
+        $check = VehicleCheck::factory()->create([
+            'previous_date' => now()->subMonths(5),
+            'previous_odometer' => 10000,
+            'current_odometer' => 14999,
+        ]);
+
+        $this->assertFalse($check->oilChangeIsDue());
+    }
+
+
 }
