@@ -15,6 +15,11 @@ class VehicleCheckController extends Controller
         return view('check.create');
     }
 
+    public function show(VehicleCheck $check): View
+    {
+        return view('check.show', compact('check'));
+    }
+
     public function store(Request $request): RedirectResponse
     {
         $check = VehicleCheck::create($request->validate([
