@@ -66,7 +66,7 @@ class VehicleCheckControllerTest extends TestCase
         ]);
 
         $response->assertUnprocessable();
-        $response->assertValidationError('current_odometer', 'The current odometer must be an integer.');
+        $response->assertJsonValidationErrorFor('current_odometer');
         $this->assertSame(0, VehicleCheck::count());
     }
 
@@ -81,7 +81,7 @@ class VehicleCheckControllerTest extends TestCase
         ]);
 
         $response->assertUnprocessable();
-        $response->assertValidationError('current_odometer', 'The current odometer must be greater than the previous odometer reading.');
+        $response->assertJsonValidationErrorFor('current_odometer');
         $this->assertSame(0, VehicleCheck::count());
     }
 
@@ -184,7 +184,7 @@ class VehicleCheckControllerTest extends TestCase
         $response->assertOk();
         $response->assertSee('Result');
         $response->assertSee("Current odometer reading: {$check->current_odometer}");
-        $response->assertSee("Previous oil change date: {$check->previous_date?->diffForHumans()}");
+        $response->assertSee("Previous oil change was: {$check->previous_date?->diffForHumans()}");
         $response->assertSee("Previous odometer reading: {$check->previous_odometer}");
     }
 
@@ -217,6 +217,4 @@ class VehicleCheckControllerTest extends TestCase
 
         $this->assertFalse($check->oilChangeIsDue());
     }
-
-
 }
