@@ -2,6 +2,10 @@
 
 @section('content')
     <div class="flex flex-col gap-4 rounded-lg border border-gray-200 bg-zinc-100 px-10 py-8">
+        <button class="text-md self-start font-medium text-zinc-500 hover:text-zinc-700">
+            <a href="{{ route('check.create') }}">
+                < Back</a>
+        </button>
         <h1 class="text-4xl font-bold">Result</h1>
         <p>{{ $check->oilChangeIsDue() ? 'An oil change is needed.' : 'No oil change needed at this time.' }}</p>
         <p>Current odometer reading: {{ $check->current_odometer }}</p>
